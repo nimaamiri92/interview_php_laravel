@@ -5,7 +5,9 @@ namespace App\Repositories;
 
 
 use App\Models\Supplier;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class SupplierRepository extends BaseRepository
 {
@@ -26,6 +28,34 @@ class SupplierRepository extends BaseRepository
         return $this->findOneBy(['name' => $name]);
     }
 
+    public function calculateTotalHoursSuppliersWork()
+    {
+        $rawSuppliers = $this->getRawSuppliers();
+        $convertedRawSuppliersToPhpArray = convertJsonToArray($rawSuppliers, false);
+
+        $allSuppliers = $this->getAllSuppliers($convertedRawSuppliersToPhpArray);
+        $sumOfSupplierWorkingHours = 0;
+        $weakDays = [
+            'mon',
+            'tue',
+            'wed',
+            'thu',
+            'fri',
+            'sat',
+            'sun',
+        ];
+        foreach ($allSuppliers as $supplier){
+            foreach ($weakDays as $day) {
+                $day = Str::after($supplier->{$day},': ');
+
+                //get a day periods
+                $allDayPeriods = explode(',',$day);
+                $sumOfSupplierWorkingHours += $this->getSingleDayWorkingTimeInHour($allDayPeriods);
+            }
+        }
+
+        return $sumOfSupplierWorkingHours;
+    }
 
     private function getRawSuppliers()
     {
@@ -55,5 +85,21 @@ class SupplierRepository extends BaseRepository
         }
 
         return $allSuppliers[$id];
+    }
+
+    /**
+     * @param $allDayPeriods
+     */
+    private function getSingleDayWorkingTimeInHour($allDayPeriods)
+    {
+        $singleDayWorkingHour = 0;
+        foreach ($allDayPeriods as $period) {
+            $startTime = Carbon::parse(explode('-', $period)[0]);
+            $endTime = Carbon::parse(explode('-', $period)[1]);
+
+            $singleDayWorkingHour += $startTime->diffInHours($endTime);
+        }
+
+        return $singleDayWorkingHour;
     }
 }

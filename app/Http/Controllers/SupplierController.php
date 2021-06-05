@@ -11,10 +11,12 @@ use Illuminate\Http\Request;
 class SupplierController extends Controller
 {
     public $supplierService;
+    public $supplierRepository;
 
-    public function __construct(SupplierService $supplierService)
+    public function __construct(SupplierService $supplierService,SupplierRepository $supplierRepository)
     {
         $this->supplierService = $supplierService;
+        $this->supplierRepository = $supplierRepository;
     }
 
     /**
@@ -56,7 +58,7 @@ class SupplierController extends Controller
      */
     public function show(Supplier $supplier)
     {
-
+        $this->supplierRepository->calculateTotalHoursSuppliersWork(123);
     }
 
     /**

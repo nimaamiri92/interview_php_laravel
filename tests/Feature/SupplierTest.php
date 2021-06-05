@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Supplier;
+use App\Repositories\SupplierRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Storage;
@@ -10,6 +11,19 @@ use Tests\TestCase;
 
 class SupplierTest extends TestCase
 {
+
+
+    /**
+     * @var SupplierRepository
+     */
+    private $supplierRepository;
+
+    public function setUp(): void
+    {
+        parent::setUp();
+        $this->supplierRepository = new SupplierRepository(new Supplier());
+    }
+
     /**
      * In the task we need to calculate amount of hours suppliers are working during last week for marketing.
      * You can use any way you like to do it, but remember, in real life we are about to have 400+ real
@@ -20,7 +34,7 @@ class SupplierTest extends TestCase
     public function testCalculateAmountOfHoursDuringTheWeekSuppliersAreWorking()
     {
         $response = $this->get('/api/suppliers');
-        $hours = NAN;
+        $hours = $this->supplierRepository->calculateTotalHoursSuppliersWork();
 
         $response->assertStatus(200);
         $this->assertEquals(136, $hours,
